@@ -467,20 +467,36 @@ prevBtn.addEventListener('click', ()=>goTo(-1));
 nextBtn.addEventListener('click', ()=>goTo(1));
 
 // --- Text to speech ("Hear it") ---
-function speakCurrentWord(){
-  const item = WORDS[currentTheme].items[currentIndex];
-  if(!('speechSynthesis' in window)){
-    showSupportBanner("This browser can't play Hebrew audio out loud. Try Chrome on desktop or Android.");
-    return;
-  }
+// Chrome's SpeechSynthesis engine can get stuck ("speaking" never clears, or
+// speak() silently no-ops) after a SpeechRecognition session has used the mic.
+// Forcing cancel() + a short delay + a resume() before every speak() call
+// works around this in practice.
+function doSpeak(item){
   const utter = new SpeechSynthesisUtterance(item.plain);
   utter.lang = 'he-IL';
   utter.rate = 0.85;
   const voices = window.speechSynthesis.getVoices();
   const heVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('he'));
   if(heVoice) utter.voice = heVoice;
-  window.speechSynthesis.cancel();
+  utter.onerror = ()=>{
+    showSupportBanner("Playback got interrupted by the browser's speech engine. Tap \"Hear it\" again — this is a known Chrome quirk after recording, not a broken word.");
+  };
   window.speechSynthesis.speak(utter);
+}
+
+function speakCurrentWord(){
+  const item = WORDS[currentTheme].items[currentIndex];
+  if(!('speechSynthesis' in window)){
+    showSupportBanner("This browser can't play Hebrew audio out loud. Try Chrome on desktop or Android.");
+    return;
+  }
+  // Hard reset the synthesis queue every time, since a prior recognition
+  // session can leave it in a state where speak() is silently ignored.
+  window.speechSynthesis.cancel();
+  if(window.speechSynthesis.paused){
+    window.speechSynthesis.resume();
+  }
+  setTimeout(()=>{ doSpeak(item); }, 120);
 }
 hearBtn.addEventListener('click', speakCurrentWord);
 if('speechSynthesis' in window){
@@ -591,7 +607,12 @@ function startRecording(){
       const transcript = event.results[0][0].transcript;
       handleResult(transcript);
     };
-    recognition.onend = ()=> setRecordingUI(false);
+    recognition.onend = ()=>{
+      setRecordingUI(false);
+      // Fully release the recognizer/mic session rather than leaving it
+      // referenced — helps prevent it from blocking speechSynthesis afterward.
+      recognition = null;
+    };
 
     recognition.start();
   }catch(err){
@@ -601,7 +622,7 @@ function startRecording(){
 }
 
 function stopRecording(){
-  if(recognition) recognition.stop();
+  if(recognition) recognition.abort();
 }
 
 recordBtn.addEventListener('click', ()=>{
