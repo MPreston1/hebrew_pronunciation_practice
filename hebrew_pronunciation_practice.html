@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>תרגול הגייה — Hebrew Pronunciation Practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Rubik+Mono+One&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky:#EAF6F6;
+    --sky-deep:#D8EEEC;
+    --sea:#1E7F79;
+    --sea-dark:#155C58;
+    --pomegranate:#C8383A;
+    --pomegranate-dark:#9E2A2C;
+    --sun:#F2A93B;
+    --ink:#1F2A2E;
+    --leaf:#3F9A57;
+    --paper:#FFFFFF;
+    --shadow: 0 10px 30px rgba(31,42,46,0.12);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; min-height:100%;
+    background:
+      radial-gradient(circle at 15% 10%, var(--sky-deep) 0%, transparent 45%),
+      radial-gradient(circle at 85% 90%, var(--sky-deep) 0%, transparent 45%),
+      var(--sky);
+    font-family:'Rubik', system-ui, -apple-system, "Segoe UI", sans-serif;
+    color:var(--ink);
+  }
+  .wrap{
+    max-width:640px;
+    margin:0 auto;
+    padding:28px 18px 60px;
+  }
+  header{
+    text-align:center;
+    margin-bottom:18px;
+  }
+  .eyebrow{
+    font-size:13px;
+    letter-spacing:0.08em;
+    color:var(--sea-dark);
+    font-weight:600;
+    text-transform:uppercase;
+    margin-bottom:4px;
+  }
+  h1{
+    font-size:30px;
+    margin:0 0 4px;
+    font-weight:800;
+    color:var(--sea-dark);
+  }
+  .sub{
+    font-size:14px;
+    color:#4B6461;
+    margin:0;
+    line-height:1.5;
+  }
+
+  .support-banner{
+    display:none;
+    background:#FFF3E0;
+    border:1px solid var(--sun);
+    color:#7A4B0F;
+    border-radius:14px;
+    padding:12px 16px;
+    font-size:13.5px;
+    line-height:1.5;
+    margin-bottom:18px;
+  }
+  .support-banner.show{display:block;}
+
+  .themes{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    justify-content:center;
+    margin-bottom:22px;
+  }
+  .theme-chip{
+    border:2px solid transparent;
+    background:var(--paper);
+    color:var(--sea-dark);
+    padding:8px 16px;
+    border-radius:999px;
+    font-family:inherit;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    transition:transform .12s ease, border-color .12s ease, background .12s ease;
+    box-shadow:0 2px 8px rgba(30,127,121,0.10);
+  }
+  .theme-chip:hover{transform:translateY(-1px);}
+  .theme-chip.active{
+    background:var(--sea);
+    color:white;
+    border-color:var(--sea-dark);
+  }
+
+  .stage{
+    position:relative;
+    background:var(--paper);
+    border-radius:28px;
+    box-shadow:var(--shadow);
+    padding:34px 26px 26px;
+    text-align:center;
+    overflow:hidden;
+  }
+
+  .progress-row{
+    display:flex;
+    justify-content:center;
+    gap:6px;
+    margin-bottom:18px;
+  }
+  .dot{
+    width:8px; height:8px; border-radius:50%;
+    background:#DCE7E6;
+    transition:background .2s ease, transform .2s ease;
+  }
+  .dot.current{background:var(--sun); transform:scale(1.3);}
+  .dot.done{background:var(--leaf);}
+
+  .emoji{
+    font-size:64px;
+    line-height:1;
+    margin-bottom:8px;
+    display:block;
+  }
+  .word-heb{
+    font-size:52px;
+    font-weight:700;
+    color:var(--ink);
+    margin:6px 0 2px;
+    direction:rtl;
+  }
+  .word-translit{
+    font-size:15px;
+    color:var(--sea-dark);
+    font-weight:600;
+    margin:0 0 2px;
+    letter-spacing:.02em;
+  }
+  .word-gloss{
+    font-size:14px;
+    color:#6B807D;
+    margin:0 0 22px;
+  }
+
+  .controls{
+    display:flex;
+    gap:14px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin-bottom:8px;
+  }
+  button.action{
+    font-family:inherit;
+    border:none;
+    border-radius:18px;
+    padding:16px 22px;
+    font-size:16px;
+    font-weight:700;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    transition:transform .1s ease, box-shadow .1s ease, background .15s ease;
+    box-shadow:0 4px 14px rgba(0,0,0,0.10);
+  }
+  button.action:active{transform:translateY(1px) scale(.98);}
+  button.action:disabled{opacity:.45; cursor:not-allowed;}
+
+  .btn-hear{
+    background:var(--sun);
+    color:#4A2F00;
+  }
+  .btn-record{
+    background:var(--pomegranate);
+    color:white;
+  }
+  .btn-record.recording{
+    background:var(--pomegranate-dark);
+    box-shadow:0 0 0 0 rgba(200,56,58,.6);
+    animation: pulse 1.1s infinite;
+  }
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(200,56,58,.55);}
+    70%{box-shadow:0 0 0 16px rgba(200,56,58,0);}
+    100%{box-shadow:0 0 0 0 rgba(200,56,58,0);}
+  }
+
+  .waveform{
+    height:36px;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    gap:4px;
+    margin:18px 0 6px;
+    visibility:hidden;
+  }
+  .waveform.show{visibility:visible;}
+  .bar{
+    width:5px;
+    border-radius:3px;
+    background:var(--pomegranate);
+    animation: bounce 0.9s infinite ease-in-out;
+  }
+  .bar:nth-child(1){animation-delay:0s; height:10px;}
+  .bar:nth-child(2){animation-delay:.1s; height:22px;}
+  .bar:nth-child(3){animation-delay:.2s; height:32px;}
+  .bar:nth-child(4){animation-delay:.3s; height:18px;}
+  .bar:nth-child(5){animation-delay:.4s; height:26px;}
+  @keyframes bounce{
+    0%,100%{transform:scaleY(0.4);}
+    50%{transform:scaleY(1);}
+  }
+
+  .feedback{
+    min-height:64px;
+    margin-top:14px;
+    padding:14px 16px;
+    border-radius:16px;
+    font-size:15px;
+    line-height:1.5;
+    display:none;
+  }
+  .feedback.show{display:block;}
+  .feedback.good{background:#E9F6EC; color:#2C6B3D;}
+  .feedback.bad{background:#FCEDEC; color:#8A2C2E;}
+  .feedback .heard{
+    display:block;
+    margin-top:4px;
+    font-size:13px;
+    opacity:.85;
+  }
+
+  .nav-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:22px;
+  }
+  .nav-btn{
+    background:none;
+    border:none;
+    font-family:inherit;
+    color:var(--sea-dark);
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    padding:8px 10px;
+  }
+  .streak{
+    font-size:14px;
+    color:var(--sea-dark);
+    font-weight:600;
+  }
+
+  .seed{
+    position:absolute;
+    top:-10px;
+    font-size:18px;
+    pointer-events:none;
+    animation: fall linear forwards;
+  }
+  @keyframes fall{
+    to{ transform: translateY(340px) rotate(360deg); opacity:0; }
+  }
+
+  footer{
+    text-align:center;
+    font-size:12px;
+    color:#7C908D;
+    margin-top:22px;
+    line-height:1.6;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .btn-record.recording, .bar, .seed { animation:none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Say it • Hear it • Try again</div>
+    <h1>תרגול הגייה</h1>
+    <p class="sub">Tap a word, listen to it, then record yourself. This checks whether the sounds came through recognizably — not exact pronunciation — so treat "try again" as a nudge, not a verdict.</p>
+  </header>
+
+  <div class="support-banner" id="supportBanner"></div>
+
+  <div class="themes" id="themes"></div>
+
+  <div class="stage">
+    <div class="progress-row" id="progressRow"></div>
+
+    <span class="emoji" id="emoji">🙂</span>
+    <div class="word-heb" id="wordHeb">שלום</div>
+    <div class="word-translit" id="wordTranslit">shalom</div>
+    <div class="word-gloss" id="wordGloss">hello / peace</div>
+
+    <div class="controls">
+      <button class="action btn-hear" id="hearBtn">🔊 Hear it</button>
+      <button class="action btn-record" id="recordBtn">🎤 Try it</button>
+    </div>
+
+    <div class="waveform" id="waveform">
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="nav-row">
+      <button class="nav-btn" id="prevBtn">◀ קודם</button>
+      <span class="streak" id="streak">0 🔥</span>
+      <button class="nav-btn" id="nextBtn">הבא ▶</button>
+    </div>
+  </div>
+
+  <footer>
+    Works best in Chrome (desktop or Android) with a Hebrew (he-IL) speech setting.<br>
+    Recognition is approximate, especially for younger voices — it listens for whole-word matches, not individual sounds.
+  </footer>
+</div>
+
+<script>
+const WORDS = {
+  "ברכות": {label:"Greetings", emoji:"👋", items:[
+    {heb:"שָׁלוֹם", plain:"שלום", translit:"shalom", gloss:"hello / peace", emoji:"👋"},
+    {heb:"בֹּקֶר טוֹב", plain:"בוקר טוב", translit:"boker tov", gloss:"good morning", emoji:"🌅"},
+    {heb:"לַיְלָה טוֹב", plain:"לילה טוב", translit:"laila tov", gloss:"good night", emoji:"🌙"},
+    {heb:"תּוֹדָה", plain:"תודה", translit:"toda", gloss:"thank you", emoji:"🙏"},
+    {heb:"בְּבַקָּשָׁה", plain:"בבקשה", translit:"bevakasha", gloss:"please / here you go", emoji:"🤲"},
+    {heb:"לְהִתְרָאוֹת", plain:"להתראות", translit:"lehitra'ot", gloss:"see you later", emoji:"👋"}
+  ]},
+  "צבעים": {label:"Colors", emoji:"🎨", items:[
+    {heb:"אָדֹם", plain:"אדום", translit:"adom", gloss:"red", emoji:"🔴"},
+    {heb:"כָּחֹל", plain:"כחול", translit:"kachol", gloss:"blue", emoji:"🔵"},
+    {heb:"יָרֹק", plain:"ירוק", translit:"yarok", gloss:"green", emoji:"🟢"},
+    {heb:"צָהֹב", plain:"צהוב", translit:"tsahov", gloss:"yellow", emoji:"🟡"},
+    {heb:"סָגֹל", plain:"סגול", translit:"sagol", gloss:"purple", emoji:"🟣"},
+    {heb:"לָבָן", plain:"לבן", translit:"lavan", gloss:"white", emoji:"⚪"}
+  ]},
+  "מספרים": {label:"Numbers", emoji:"🔢", items:[
+    {heb:"אֶחָד", plain:"אחד", translit:"echad", gloss:"one", emoji:"1️⃣"},
+    {heb:"שְׁתַּיִם", plain:"שתיים", translit:"shtayim", gloss:"two", emoji:"2️⃣"},
+    {heb:"שָׁלוֹשׁ", plain:"שלוש", translit:"shalosh", gloss:"three", emoji:"3️⃣"},
+    {heb:"אַרְבַּע", plain:"ארבע", translit:"arba", gloss:"four", emoji:"4️⃣"},
+    {heb:"חָמֵשׁ", plain:"חמש", translit:"chamesh", gloss:"five", emoji:"5️⃣"},
+    {heb:"עֶשֶׂר", plain:"עשר", translit:"eser", gloss:"ten", emoji:"🔟"}
+  ]},
+  "בעלי חיים": {label:"Animals", emoji:"🐘", items:[
+    {heb:"כֶּלֶב", plain:"כלב", translit:"kelev", gloss:"dog", emoji:"🐶"},
+    {heb:"חָתוּל", plain:"חתול", translit:"chatul", gloss:"cat", emoji:"🐱"},
+    {heb:"אַרְיֵה", plain:"אריה", translit:"arye", gloss:"lion", emoji:"🦁"},
+    {heb:"פִּיל", plain:"פיל", translit:"pil", gloss:"elephant", emoji:"🐘"},
+    {heb:"צִפּוֹר", plain:"ציפור", translit:"tsipor", gloss:"bird", emoji:"🐦"},
+    {heb:"דָּג", plain:"דג", translit:"dag", gloss:"fish", emoji:"🐟"}
+  ]},
+  "אוכל": {label:"Food", emoji:"🍎", items:[
+    {heb:"לֶחֶם", plain:"לחם", translit:"lechem", gloss:"bread", emoji:"🍞"},
+    {heb:"מַיִם", plain:"מים", translit:"mayim", gloss:"water", emoji:"💧"},
+    {heb:"תַּפּוּחַ", plain:"תפוח", translit:"tapuach", gloss:"apple", emoji:"🍎"},
+    {heb:"גְּבִינָה", plain:"גבינה", translit:"gvina", gloss:"cheese", emoji:"🧀"},
+    {heb:"עוּגָה", plain:"עוגה", translit:"uga", gloss:"cake", emoji:"🎂"},
+    {heb:"מָרָק", plain:"מרק", translit:"marak", gloss:"soup", emoji:"🍲"}
+  ]},
+  "רגשות": {label:"Feelings", emoji:"🙂", items:[
+    {heb:"שָׂמֵחַ", plain:"שמח", translit:"sameach", gloss:"happy", emoji:"😄"},
+    {heb:"עָצוּב", plain:"עצוב", translit:"atsuv", gloss:"sad", emoji:"😢"},
+    {heb:"עָיֵף", plain:"עייף", translit:"ayef", gloss:"tired", emoji:"😴"},
+    {heb:"רָעֵב", plain:"רעב", translit:"raev", gloss:"hungry", emoji:"🍽️"},
+    {heb:"מְפֻחָד", plain:"מפוחד", translit:"mefuchad", gloss:"scared", emoji:"😨"},
+    {heb:"נִרְגָּשׁ", plain:"נרגש", translit:"nirgash", gloss:"excited", emoji:"🤩"}
+  ]},
+  "משפחה": {label:"Family", emoji:"👨‍👩‍👧‍👦", items:[
+    {heb:"אִמָּא", plain:"אמא", translit:"ima", gloss:"mom", emoji:"👩"},
+    {heb:"אַבָּא", plain:"אבא", translit:"aba", gloss:"dad", emoji:"👨"},
+    {heb:"אָח", plain:"אח", translit:"ach", gloss:"brother", emoji:"👦"},
+    {heb:"אָחוֹת", plain:"אחות", translit:"achot", gloss:"sister", emoji:"👧"},
+    {heb:"סַבָּא", plain:"סבא", translit:"saba", gloss:"grandpa", emoji:"👴"},
+    {heb:"סַבְתָּא", plain:"סבתא", translit:"savta", gloss:"grandma", emoji:"👵"}
+  ]}
+};
+
+const themeKeys = Object.keys(WORDS);
+let currentTheme = themeKeys[0];
+let currentIndex = 0;
+let streak = 0;
+
+const themesEl = document.getElementById('themes');
+const progressRow = document.getElementById('progressRow');
+const emojiEl = document.getElementById('emoji');
+const wordHebEl = document.getElementById('wordHeb');
+const wordTranslitEl = document.getElementById('wordTranslit');
+const wordGlossEl = document.getElementById('wordGloss');
+const hearBtn = document.getElementById('hearBtn');
+const recordBtn = document.getElementById('recordBtn');
+const waveform = document.getElementById('waveform');
+const feedbackEl = document.getElementById('feedback');
+const streakEl = document.getElementById('streak');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const supportBanner = document.getElementById('supportBanner');
+const stageEl = document.querySelector('.stage');
+
+function buildThemeChips(){
+  themesEl.innerHTML = '';
+  themeKeys.forEach(key=>{
+    const chip = document.createElement('button');
+    chip.className = 'theme-chip' + (key===currentTheme ? ' active' : '');
+    chip.textContent = WORDS[key].emoji + ' ' + WORDS[key].label;
+    chip.addEventListener('click', ()=>{
+      currentTheme = key;
+      currentIndex = 0;
+      streak = 0;
+      renderAll();
+    });
+    themesEl.appendChild(chip);
+  });
+}
+
+function buildProgressDots(){
+  progressRow.innerHTML = '';
+  const items = WORDS[currentTheme].items;
+  items.forEach((_, i)=>{
+    const dot = document.createElement('span');
+    dot.className = 'dot' + (i===currentIndex ? ' current' : '');
+    progressRow.appendChild(dot);
+  });
+}
+
+function renderWord(){
+  const item = WORDS[currentTheme].items[currentIndex];
+  emojiEl.textContent = item.emoji;
+  wordHebEl.textContent = item.heb;
+  wordTranslitEl.textContent = item.translit;
+  wordGlossEl.textContent = item.gloss;
+  feedbackEl.className = 'feedback';
+  feedbackEl.innerHTML = '';
+}
+
+function renderStreak(){
+  streakEl.textContent = streak + ' 🔥';
+}
+
+function renderAll(){
+  buildThemeChips();
+  buildProgressDots();
+  renderWord();
+  renderStreak();
+}
+
+function goTo(delta){
+  const items = WORDS[currentTheme].items;
+  currentIndex = (currentIndex + delta + items.length) % items.length;
+  buildProgressDots();
+  renderWord();
+}
+prevBtn.addEventListener('click', ()=>goTo(-1));
+nextBtn.addEventListener('click', ()=>goTo(1));
+
+// --- Text to speech ("Hear it") ---
+function speakCurrentWord(){
+  const item = WORDS[currentTheme].items[currentIndex];
+  if(!('speechSynthesis' in window)){
+    showSupportBanner("This browser can't play Hebrew audio out loud. Try Chrome on desktop or Android.");
+    return;
+  }
+  const utter = new SpeechSynthesisUtterance(item.plain);
+  utter.lang = 'he-IL';
+  utter.rate = 0.85;
+  const voices = window.speechSynthesis.getVoices();
+  const heVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('he'));
+  if(heVoice) utter.voice = heVoice;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utter);
+}
+hearBtn.addEventListener('click', speakCurrentWord);
+if('speechSynthesis' in window){
+  window.speechSynthesis.onvoiceschanged = ()=>{};
+}
+
+// --- Speech recognition ("Try it") ---
+const SpeechRecognitionImpl = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+let isRecording = false;
+
+function stripNiqqud(str){
+  return str.normalize('NFC').replace(/[\u0591-\u05C7]/g, '');
+}
+
+function levenshtein(a, b){
+  const m = a.length, n = b.length;
+  const dp = Array.from({length:m+1}, ()=>new Array(n+1).fill(0));
+  for(let i=0;i<=m;i++) dp[i][0]=i;
+  for(let j=0;j<=n;j++) dp[0][j]=j;
+  for(let i=1;i<=m;i++){
+    for(let j=1;j<=n;j++){
+      dp[i][j] = a[i-1]===b[j-1]
+        ? dp[i-1][j-1]
+        : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+    }
+  }
+  return dp[m][n];
+}
+
+function isCloseMatch(target, heard){
+  const t = stripNiqqud(target).trim();
+  const h = stripNiqqud(heard).trim();
+  if(!h) return false;
+  if(h.includes(t) || t.includes(h)) return true;
+  const dist = levenshtein(t, h);
+  const threshold = Math.max(1, Math.round(t.length * 0.34));
+  return dist <= threshold;
+}
+
+function showSupportBanner(msg){
+  supportBanner.textContent = msg;
+  supportBanner.classList.add('show');
+}
+
+function dropSeeds(){
+  for(let i=0;i<10;i++){
+    const seed = document.createElement('span');
+    seed.className = 'seed';
+    seed.textContent = '🔴';
+    seed.style.left = (10 + Math.random()*80) + '%';
+    seed.style.animationDuration = (0.9 + Math.random()*0.6) + 's';
+    seed.style.fontSize = (10 + Math.random()*8) + 'px';
+    stageEl.appendChild(seed);
+    setTimeout(()=>seed.remove(), 1600);
+  }
+}
+
+function setRecordingUI(on){
+  isRecording = on;
+  recordBtn.classList.toggle('recording', on);
+  recordBtn.innerHTML = on ? '⏹️ מקשיב...' : '🎤 Try it';
+  waveform.classList.toggle('show', on);
+}
+
+function handleResult(transcript){
+  const item = WORDS[currentTheme].items[currentIndex];
+  const good = isCloseMatch(item.plain, transcript);
+  feedbackEl.classList.add('show');
+  if(good){
+    feedbackEl.classList.remove('bad');
+    feedbackEl.classList.add('good');
+    feedbackEl.innerHTML = '✅ נשמע מצוין! Sounded right.<span class="heard">Heard: "' + (transcript || '—') + '"</span>';
+    streak += 1;
+    dropSeeds();
+  } else {
+    feedbackEl.classList.remove('good');
+    feedbackEl.classList.add('bad');
+    feedbackEl.innerHTML = '🔁 בוא ננסה שוב. Let\'s try again.<span class="heard">Heard: "' + (transcript || 'nothing recognized') + '"</span>';
+    streak = 0;
+  }
+  renderStreak();
+}
+
+function startRecording(){
+  if(!SpeechRecognitionImpl){
+    showSupportBanner("This browser doesn't support speech recognition for Hebrew. Try Chrome on desktop or Android with a he-IL keyboard/language installed.");
+    return;
+  }
+  try{
+    recognition = new SpeechRecognitionImpl();
+    recognition.lang = 'he-IL';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 3;
+
+    recognition.onstart = ()=> setRecordingUI(true);
+    recognition.onerror = (e)=>{
+      setRecordingUI(false);
+      if(e.error === 'not-allowed' || e.error === 'service-not-allowed'){
+        showSupportBanner("Microphone access was blocked. Allow microphone permission for this page and try again.");
+      } else if(e.error === 'language-not-supported'){
+        showSupportBanner("This browser doesn't have Hebrew speech recognition available.");
+      } else if(e.error !== 'no-speech'){
+        showSupportBanner("Something interrupted listening (" + e.error + "). Try again.");
+      }
+    };
+    recognition.onresult = (event)=>{
+      const transcript = event.results[0][0].transcript;
+      handleResult(transcript);
+    };
+    recognition.onend = ()=> setRecordingUI(false);
+
+    recognition.start();
+  }catch(err){
+    setRecordingUI(false);
+    showSupportBanner("Couldn't start the microphone in this browser. Try Chrome on desktop or Android.");
+  }
+}
+
+function stopRecording(){
+  if(recognition) recognition.stop();
+}
+
+recordBtn.addEventListener('click', ()=>{
+  if(isRecording){
+    stopRecording();
+  } else {
+    feedbackEl.classList.remove('show');
+    startRecording();
+  }
+});
+
+if(!SpeechRecognitionImpl){
+  showSupportBanner("Speech recognition isn't available in this browser — the mic button won't work here. \"Hear it\" (playback) still works. Try Chrome on desktop or Android for the recording game.");
+}
+
+renderAll();
+</script>
+</body>
+</html>
