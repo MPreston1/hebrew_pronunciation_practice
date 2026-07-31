@@ -348,12 +348,16 @@ const WORDS = {
     {heb:"לָבָן", plain:"לבן", translit:"lavan", gloss:"white", emoji:"⚪"}
   ]},
   "מספרים": {label:"Numbers", emoji:"🔢", items:[
-    {heb:"אֶחָד", plain:"אחד", translit:"echad", gloss:"one", emoji:"1️⃣"},
-    {heb:"שְׁתַּיִם", plain:"שתיים", translit:"shtayim", gloss:"two", emoji:"2️⃣"},
-    {heb:"שָׁלוֹשׁ", plain:"שלוש", translit:"shalosh", gloss:"three", emoji:"3️⃣"},
-    {heb:"אַרְבַּע", plain:"ארבע", translit:"arba", gloss:"four", emoji:"4️⃣"},
-    {heb:"חָמֵשׁ", plain:"חמש", translit:"chamesh", gloss:"five", emoji:"5️⃣"},
-    {heb:"עֶשֶׂר", plain:"עשר", translit:"eser", gloss:"ten", emoji:"🔟"}
+    {heb:"אַחַת", plain:"אחת", translit:"achat", gloss:"one (f)", emoji:"1️⃣"},
+    {heb:"שְׁתַּיִם", plain:"שתיים", translit:"shtayim", gloss:"two (f)", emoji:"2️⃣"},
+    {heb:"שָׁלוֹשׁ", plain:"שלוש", translit:"shalosh", gloss:"three (f)", emoji:"3️⃣"},
+    {heb:"אַרְבַּע", plain:"ארבע", translit:"arba", gloss:"four (f)", emoji:"4️⃣"},
+    {heb:"חָמֵשׁ", plain:"חמש", translit:"chamesh", gloss:"five (f)", emoji:"5️⃣"},
+    {heb:"שֵׁשׁ", plain:"שש", translit:"shesh", gloss:"six (f)", emoji:"6️⃣"},
+    {heb:"שֶׁבַע", plain:"שבע", translit:"sheva", gloss:"seven (f)", emoji:"7️⃣"},
+    {heb:"שְׁמוֹנֶה", plain:"שמונה", translit:"shmoneh", gloss:"eight (f)", emoji:"8️⃣"},
+    {heb:"תֵּשַׁע", plain:"תשע", translit:"tesha", gloss:"nine (f)", emoji:"9️⃣"},
+    {heb:"עֶשֶׂר", plain:"עשר", translit:"eser", gloss:"ten (f)", emoji:"🔟"}
   ]},
   "בעלי חיים": {label:"Animals", emoji:"🐘", items:[
     {heb:"כֶּלֶב", plain:"כלב", translit:"kelev", gloss:"dog", emoji:"🐶"},
@@ -361,7 +365,8 @@ const WORDS = {
     {heb:"אַרְיֵה", plain:"אריה", translit:"arye", gloss:"lion", emoji:"🦁"},
     {heb:"פִּיל", plain:"פיל", translit:"pil", gloss:"elephant", emoji:"🐘"},
     {heb:"צִפּוֹר", plain:"ציפור", translit:"tsipor", gloss:"bird", emoji:"🐦"},
-    {heb:"דָּג", plain:"דג", translit:"dag", gloss:"fish", emoji:"🐟"}
+    {heb:"דָּג", plain:"דג", translit:"dag", gloss:"fish", emoji:"🐟"},
+    {heb:"חֲזִיר", plain:"חזיר", translit:"chazir", gloss:"pig", emoji:"🐷"}
   ]},
   "אוכל": {label:"Food", emoji:"🍎", items:[
     {heb:"לֶחֶם", plain:"לחם", translit:"lechem", gloss:"bread", emoji:"🍞"},
@@ -376,6 +381,7 @@ const WORDS = {
     {heb:"עָצוּב", plain:"עצוב", translit:"atsuv", gloss:"sad", emoji:"😢"},
     {heb:"עָיֵף", plain:"עייף", translit:"ayef", gloss:"tired", emoji:"😴"},
     {heb:"רָעֵב", plain:"רעב", translit:"raev", gloss:"hungry", emoji:"🍽️"},
+    {heb:"צָמֵא", plain:"צמא", translit:"tsame", gloss:"thirsty", emoji:"🥤"},
     {heb:"מְפֻחָד", plain:"מפוחד", translit:"mefuchad", gloss:"scared", emoji:"😨"},
     {heb:"נִרְגָּשׁ", plain:"נרגש", translit:"nirgash", gloss:"excited", emoji:"🤩"}
   ]},
@@ -386,6 +392,22 @@ const WORDS = {
     {heb:"אָחוֹת", plain:"אחות", translit:"achot", gloss:"sister", emoji:"👧"},
     {heb:"סַבָּא", plain:"סבא", translit:"saba", gloss:"grandpa", emoji:"👴"},
     {heb:"סַבְתָּא", plain:"סבתא", translit:"savta", gloss:"grandma", emoji:"👵"}
+  ]},
+  "בגדים": {label:"Clothes", emoji:"👕", items:[
+    {heb:"חֻלְצָה", plain:"חולצה", translit:"chultsa", gloss:"shirt", emoji:"👕"},
+    {heb:"מִכְנָסַיִם", plain:"מכנסיים", translit:"michnasayim", gloss:"pants", emoji:"👖"},
+    {heb:"שִׂמְלָה", plain:"שמלה", translit:"simla", gloss:"dress", emoji:"👗"},
+    {heb:"נַעֲלַיִם", plain:"נעליים", translit:"na'alayim", gloss:"shoes", emoji:"👟"},
+    {heb:"כּוֹבַע", plain:"כובע", translit:"kova", gloss:"hat", emoji:"🧢"},
+    {heb:"גֶּרֶב", plain:"גרב", translit:"gerev", gloss:"sock", emoji:"🧦"}
+  ]},
+  "מזג אוויר": {label:"Weather", emoji:"⛅", items:[
+    {heb:"שֶׁמֶשׁ", plain:"שמש", translit:"shemesh", gloss:"sun", emoji:"☀️"},
+    {heb:"גֶּשֶׁם", plain:"גשם", translit:"geshem", gloss:"rain", emoji:"🌧️"},
+    {heb:"רוּחַ", plain:"רוח", translit:"ruach", gloss:"wind", emoji:"💨"},
+    {heb:"שֶׁלֶג", plain:"שלג", translit:"sheleg", gloss:"snow", emoji:"❄️"},
+    {heb:"עָנָן", plain:"ענן", translit:"anan", gloss:"cloud", emoji:"☁️"},
+    {heb:"חַם", plain:"חם", translit:"cham", gloss:"hot", emoji:"🥵"}
   ]}
 };
 
