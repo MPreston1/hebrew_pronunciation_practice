@@ -73,6 +73,101 @@
   }
   .support-banner.show{display:block;}
 
+  .customize-row{
+    display:flex;
+    justify-content:center;
+    margin-bottom:10px;
+  }
+  .customize-toggle{
+    background:none;
+    border:1.5px dashed #9CB6B3;
+    color:var(--sea-dark);
+    font-family:inherit;
+    font-size:13px;
+    font-weight:600;
+    padding:8px 14px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .customize-toggle.active{
+    background:var(--sea-dark);
+    color:white;
+    border-color:var(--sea-dark);
+  }
+  .customize-panel{
+    display:none;
+    background:#F3FAF9;
+    border:1.5px solid #C9E4E1;
+    border-radius:18px;
+    padding:16px 18px;
+    margin-bottom:16px;
+    text-align:center;
+  }
+  .customize-panel.show{display:block;}
+  .folder-row{
+    text-align:center;
+    margin-bottom:10px;
+  }
+  .btn-folder{
+    background:var(--sea);
+    color:white;
+    padding:9px 16px;
+    font-size:13px;
+    border-radius:14px;
+    box-shadow:none;
+  }
+  .folder-status{
+    font-size:12px;
+    color:#4B6461;
+    margin-top:6px;
+  }
+  .divider{
+    border:none;
+    border-top:1px dashed #C9E4E1;
+    margin:12px 0 14px;
+  }
+  .customize-title{
+    font-size:14px;
+    font-weight:700;
+    color:var(--sea-dark);
+    margin-bottom:6px;
+  }
+  .customize-status{
+    font-size:12.5px;
+    color:#4B6461;
+    margin-bottom:12px;
+  }
+  .customize-controls{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin-bottom:8px;
+  }
+  .customize-controls .action{
+    padding:10px 16px;
+    font-size:13.5px;
+    border-radius:14px;
+    box-shadow:none;
+  }
+  .btn-record-custom{background:var(--pomegranate); color:white;}
+  .btn-record-custom.recording{
+    background:var(--pomegranate-dark);
+    animation: pulse 1.1s infinite;
+  }
+  .btn-preview{background:var(--sun); color:#4A2F00;}
+  .btn-remove{background:#E7EEED; color:#5A6E6B;}
+  .customize-hint{
+    font-size:11.5px;
+    color:#7C908D;
+  }
+  .audio-source{
+    font-size:12px;
+    color:#7C908D;
+    font-weight:600;
+    margin-top:2px;
+  }
+
   .themes{
     display:flex;
     gap:8px;
@@ -295,6 +390,26 @@
 
   <div class="support-banner" id="supportBanner"></div>
 
+  <div class="customize-row">
+    <button class="customize-toggle" id="customizeToggle">🎛️ Customize audio for this word</button>
+  </div>
+
+  <div class="customize-panel" id="customizePanel">
+    <div class="folder-row">
+      <button class="action btn-folder" id="folderBtn">📁 Connect recordings folder</button>
+      <div class="folder-status" id="folderStatus">Not connected yet — clips can't be saved to disk until you connect a folder.</div>
+    </div>
+    <hr class="divider">
+    <div class="customize-title">Record your own voice for <span id="customizeWordLabel">this word</span></div>
+    <div class="customize-status" id="customizeStatus">No custom recording yet — using the computer voice.</div>
+    <div class="customize-controls">
+      <button class="action btn-record-custom" id="recordCustomBtn">⏺️ Record</button>
+      <button class="action btn-preview" id="previewBtn" disabled>▶️ Play mine</button>
+      <button class="action btn-remove" id="removeBtn" disabled>🗑️ Remove</button>
+    </div>
+    <div class="customize-hint">Tap Record, say the word once, tap Stop. Files are saved as real .webm files in the folder you connect above.</div>
+  </div>
+
   <div class="themes" id="themes"></div>
 
   <div class="stage">
@@ -309,6 +424,7 @@
       <button class="action btn-hear" id="hearBtn">🔊 Hear it</button>
       <button class="action btn-record" id="recordBtn">🎤 Try it</button>
     </div>
+    <div class="audio-source" id="audioSource">🤖 computer voice</div>
 
     <div class="waveform" id="waveform">
       <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
@@ -431,6 +547,16 @@ const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 const supportBanner = document.getElementById('supportBanner');
 const stageEl = document.querySelector('.stage');
+const customizeToggle = document.getElementById('customizeToggle');
+const customizePanel = document.getElementById('customizePanel');
+const customizeWordLabel = document.getElementById('customizeWordLabel');
+const customizeStatus = document.getElementById('customizeStatus');
+const recordCustomBtn = document.getElementById('recordCustomBtn');
+const previewBtn = document.getElementById('previewBtn');
+const removeBtn = document.getElementById('removeBtn');
+const audioSourceEl = document.getElementById('audioSource');
+const folderBtn = document.getElementById('folderBtn');
+const folderStatus = document.getElementById('folderStatus');
 
 function buildThemeChips(){
   themesEl.innerHTML = '';
@@ -466,6 +592,8 @@ function renderWord(){
   wordGlossEl.textContent = item.gloss;
   feedbackEl.className = 'feedback';
   feedbackEl.innerHTML = '';
+  customizeWordLabel.textContent = '"' + item.translit + '"';
+  refreshCustomAudioUI();
 }
 
 function renderStreak(){
@@ -488,6 +616,214 @@ function goTo(delta){
 prevBtn.addEventListener('click', ()=>goTo(-1));
 nextBtn.addEventListener('click', ()=>goTo(1));
 
+// --- Custom voice recordings, saved as real .webm files on your computer ---
+// Uses the File System Access API (Chrome/Edge only) to write into a folder
+// you choose, and IndexedDB to remember that folder between sessions.
+const IDB_NAME = 'hebrew-app-fs';
+const IDB_STORE = 'handles';
+const DIR_HANDLE_KEY = 'recordingsDir';
+
+function idbOpen(){
+  return new Promise((resolve, reject)=>{
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = ()=> req.result.createObjectStore(IDB_STORE);
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+async function idbGet(key){
+  const db = await idbOpen();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).get(key);
+    req.onsuccess = ()=> resolve(req.result || null);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+async function idbSet(key, value){
+  const db = await idbOpen();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(value, key);
+    tx.oncomplete = ()=> resolve();
+    tx.onerror = ()=> reject(tx.error);
+  });
+}
+
+let recordingsDir = null; // FileSystemDirectoryHandle once connected
+
+function sanitize(str){
+  return str.toLowerCase().replace(/[^a-z0-9_-]+/g, '_');
+}
+function filenameFor(theme, index){
+  const item = WORDS[theme].items[index];
+  return sanitize(theme) + '__' + sanitize(item.translit) + '.webm';
+}
+
+function setFolderStatus(text){
+  folderStatus.textContent = text;
+}
+
+async function tryReconnectSilently(){
+  if(!window.showDirectoryPicker) return;
+  try{
+    const saved = await idbGet(DIR_HANDLE_KEY);
+    if(!saved) return;
+    const perm = await saved.queryPermission({mode:'readwrite'});
+    if(perm === 'granted'){
+      recordingsDir = saved;
+      setFolderStatus('📁 Connected: "' + saved.name + '" — recordings will be saved here.');
+      folderBtn.textContent = '📁 Reconnect / change folder';
+      refreshCustomAudioUI();
+    } else {
+      setFolderStatus('📁 Was connected to "' + saved.name + '" — click the button once to reconnect.');
+    }
+  }catch(err){ /* ignore */ }
+}
+
+async function connectFolder(){
+  if(!window.showDirectoryPicker){
+    showSupportBanner("Saving to your hard drive needs Chrome or Edge — this feature isn't available in this browser.");
+    return;
+  }
+  try{
+    // If we already have a remembered handle, try requesting permission on
+    // it first (no picker dialog) before falling back to a fresh picker.
+    const saved = await idbGet(DIR_HANDLE_KEY);
+    if(saved){
+      const perm = await saved.requestPermission({mode:'readwrite'});
+      if(perm === 'granted'){
+        recordingsDir = saved;
+        setFolderStatus('📁 Connected: "' + saved.name + '" — recordings will be saved here.');
+        folderBtn.textContent = '📁 Reconnect / change folder';
+        refreshCustomAudioUI();
+        return;
+      }
+    }
+    const handle = await window.showDirectoryPicker({id:'hebrew-recordings', mode:'readwrite'});
+    await idbSet(DIR_HANDLE_KEY, handle);
+    recordingsDir = handle;
+    setFolderStatus('📁 Connected: "' + handle.name + '" — recordings will be saved here.');
+    folderBtn.textContent = '📁 Reconnect / change folder';
+    refreshCustomAudioUI();
+  }catch(err){
+    // user cancelled the picker — leave status as-is
+  }
+}
+folderBtn.addEventListener('click', connectFolder);
+
+async function getCustomRecordingFile(theme, index){
+  if(!recordingsDir) return null;
+  try{
+    const fh = await recordingsDir.getFileHandle(filenameFor(theme, index));
+    return await fh.getFile();
+  }catch(err){
+    return null; // doesn't exist yet
+  }
+}
+
+async function saveCustomRecording(theme, index, blob){
+  if(!recordingsDir) throw new Error('no folder connected');
+  const fh = await recordingsDir.getFileHandle(filenameFor(theme, index), {create:true});
+  const writable = await fh.createWritable();
+  await writable.write(blob);
+  await writable.close();
+}
+
+async function deleteCustomRecordingFile(theme, index){
+  if(!recordingsDir) return;
+  try{
+    await recordingsDir.removeEntry(filenameFor(theme, index));
+  }catch(err){ /* already gone */ }
+}
+
+async function refreshCustomAudioUI(){
+  const file = await getCustomRecordingFile(currentTheme, currentIndex);
+  const has = !!file;
+  previewBtn.disabled = !has;
+  removeBtn.disabled = !has;
+  recordCustomBtn.disabled = !recordingsDir;
+  customizeStatus.textContent = !recordingsDir
+    ? 'Connect a folder above before recording.'
+    : has
+      ? '✅ Saved as ' + filenameFor(currentTheme, currentIndex) + ' — this plays instead of the computer voice.'
+      : 'No custom recording yet — using the computer voice.';
+  audioSourceEl.textContent = has ? '🎙️ your voice' : '🤖 computer voice';
+}
+
+let mediaRecorder = null;
+let recordedChunks = [];
+let isCustomRecording = false;
+
+async function toggleCustomRecording(){
+  if(isCustomRecording){
+    if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+    return;
+  }
+  if(!recordingsDir){
+    showSupportBanner("Connect a recordings folder first (button above) before recording.");
+    return;
+  }
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    showSupportBanner("This page can't access the microphone to record custom audio.");
+    return;
+  }
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    recordedChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = (e)=>{ if(e.data.size>0) recordedChunks.push(e.data); };
+    mediaRecorder.onstart = ()=>{
+      isCustomRecording = true;
+      recordCustomBtn.classList.add('recording');
+      recordCustomBtn.textContent = '⏹️ Stop';
+    };
+    mediaRecorder.onstop = async ()=>{
+      isCustomRecording = false;
+      recordCustomBtn.classList.remove('recording');
+      recordCustomBtn.textContent = '⏺️ Record';
+      stream.getTracks().forEach(t => t.stop());
+      const blob = new Blob(recordedChunks, {type: mediaRecorder.mimeType || 'audio/webm'});
+      try{
+        await saveCustomRecording(currentTheme, currentIndex, blob);
+        await refreshCustomAudioUI();
+      }catch(err){
+        showSupportBanner("Couldn't save that recording to disk. Try reconnecting the folder.");
+      }
+    };
+    mediaRecorder.start();
+    // Safety auto-stop after 6 seconds so a forgotten recording doesn't run forever
+    setTimeout(()=>{ if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop(); }, 6000);
+  }catch(err){
+    showSupportBanner("Microphone access was blocked or unavailable. Allow microphone permission for this page and try again.");
+  }
+}
+
+recordCustomBtn.addEventListener('click', toggleCustomRecording);
+
+previewBtn.addEventListener('click', async ()=>{
+  const file = await getCustomRecordingFile(currentTheme, currentIndex);
+  if(!file) return;
+  const url = URL.createObjectURL(file);
+  const audio = new Audio(url);
+  audio.play().catch(()=>{
+    showSupportBanner("Couldn't play back that recording in this browser.");
+  });
+  audio.onended = ()=> URL.revokeObjectURL(url);
+});
+
+removeBtn.addEventListener('click', async ()=>{
+  await deleteCustomRecordingFile(currentTheme, currentIndex);
+  await refreshCustomAudioUI();
+});
+
+customizeToggle.addEventListener('click', ()=>{
+  const showing = customizePanel.classList.toggle('show');
+  customizeToggle.classList.toggle('active', showing);
+});
+
+tryReconnectSilently();
+
 // --- Text to speech ("Hear it") ---
 // Chrome's SpeechSynthesis engine can get stuck ("speaking" never clears, or
 // speak() silently no-ops) after a SpeechRecognition session has used the mic.
@@ -508,6 +844,22 @@ function doSpeak(item){
 
 function speakCurrentWord(){
   const item = WORDS[currentTheme].items[currentIndex];
+  getCustomRecordingFile(currentTheme, currentIndex).then(file=>{
+    if(file){
+      const url = URL.createObjectURL(file);
+      const audio = new Audio(url);
+      audio.play().catch(()=>{
+        showSupportBanner("Couldn't play your custom recording — falling back to the computer voice.");
+        speakWithTTS(item);
+      });
+      audio.onended = ()=> URL.revokeObjectURL(url);
+      return;
+    }
+    speakWithTTS(item);
+  });
+}
+
+function speakWithTTS(item){
   if(!('speechSynthesis' in window)){
     showSupportBanner("This browser can't play Hebrew audio out loud. Try Chrome on desktop or Android.");
     return;
